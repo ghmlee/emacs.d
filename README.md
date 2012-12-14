@@ -1,13 +1,13 @@
 emacs.d
 =======
 
-### Installation
+## Installation
 
 in your .emacs file:
 
    	(load "~/.emacs.d/init.el")
 	
-### Copyright
+## License
 
 Copyright © 2012 Graham Lee
 
