@@ -5,4 +5,6 @@
 (when (and (>= emacs-major-version 23) (window-system))    ; frame
   (load "~/.emacs.d/modules/window.el"))
 (load "~/.emacs.d/modules/theme.el")                       ; color theme
+(load "~/.emacs.d/modules/objc.el")                        ; objc
+(load "~/.emacs.d/modules/java.el")                        ; java
 (load "~/.emacs.d/modules/python.el")                      ; python
