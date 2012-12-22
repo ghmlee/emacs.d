@@ -9,3 +9,4 @@
 (load "~/.emacs.d/modules/java.el")                        ; java
 (load "~/.emacs.d/modules/js.el")                          ; javascript
 (load "~/.emacs.d/modules/python.el")                      ; python
+(load "~/.emacs.d/modules/web.el")                         ; web
