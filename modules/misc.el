@@ -46,3 +46,4 @@
 (global-font-lock-mode t)		; Syntax highlight
 
 (put 'narrow-to-region 'disabled nil)
+(setq debug-on-error nil)
