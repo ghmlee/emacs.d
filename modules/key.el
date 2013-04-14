@@ -1,10 +1,15 @@
 ;;============================== global set key
 
 ;; Fullscreen
+
+
+
 (when (and (eq system-type 'darwin) window-system)
   (setq mac-command-key-is-meta 1)
   (setq mac-command-modifier 'meta)
-  (global-set-key (kbd "M-RET") 'ns-toggle-fullscreen))
+  (global-set-key (kbd "C-M-z") 'toggle-frame-maximized)
+  (global-set-key (kbd "C-M-f") 'toggle-frame-fullscreen)
+  (global-set-key (kbd "M-RET") 'toggle-frame-fullscreen))
 
 ;; Ctrl key
 (global-set-key "\C-x\C-m" 'execute-extended-command)
