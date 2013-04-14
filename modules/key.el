@@ -1,9 +1,6 @@
 ;;============================== global set key
 
 ;; Fullscreen
-
-
-
 (when (and (eq system-type 'darwin) window-system)
   (setq mac-command-key-is-meta 1)
   (setq mac-command-modifier 'meta)
