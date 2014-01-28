@@ -11,3 +11,4 @@
 (load "~/.emacs.d/modules/python.el")                      ; python
 (load "~/.emacs.d/modules/css.el")                         ; css
 (load "~/.emacs.d/modules/web.el")                         ; web
+(load "~/.emacs.d/modules/jade.el")                        ; jade
