@@ -1,4 +1,6 @@
 ;;============================== misc
+(setq path "/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin")
+(setenv "PATH" path)
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq gdb-many-windows t)
 (setq x-select-enable-clipboard t) ; Share the clipboard with x-window application
