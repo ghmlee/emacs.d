@@ -2,4 +2,5 @@
 
 (require 'color-theme)
 (color-theme-initialize)
-(color-theme-subdued)
+;(color-theme-subdued)
+(color-theme-ghmlee)
