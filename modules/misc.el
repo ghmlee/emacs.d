@@ -1,5 +1,5 @@
 ;;============================== misc
-(setq path "/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin")
+(setq path "/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/go/bin")
 (setenv "PATH" path)
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq gdb-many-windows t)

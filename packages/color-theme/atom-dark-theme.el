@@ -18,7 +18,7 @@
 (custom-theme-set-faces
   'atom-dark
 
-  '(default ((t (:foreground "#abb2bf" :background "#222222" ))))
+  '(default ((t (:foreground "#abb2bf" :background "#000000" ))))
   '(cursor ((t (:background "#8599FF" ))))
   '(fringe ((t (:background "#31343F" ))))
   '(region ((t (:background "#504945" ))))
