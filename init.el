@@ -9,6 +9,7 @@
 (load "~/.emacs.d/modules/python.el")                      ; python
 (load "~/.emacs.d/modules/rust.el")                        ; rust
 (load "~/.emacs.d/modules/go.el")                          ; go
+(load "~/.emacs.d/modules/swift.el")                       ; swfit
 (load "~/.emacs.d/modules/css.el")                         ; css
 (load "~/.emacs.d/modules/web.el")                         ; web
 (load "~/.emacs.d/modules/jade.el")                        ; jade
