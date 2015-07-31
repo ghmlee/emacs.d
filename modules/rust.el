@@ -7,6 +7,8 @@
 (setq racer-rust-src-path "~/.emacs.d/src/rustc-1.1.0/src")
 (if (eq system-type 'darwin)
     (setq racer-cmd "~/.emacs.d/bin/racer/darwin"))
+(if (eq system-type 'gnu/linux)
+    (setq racer-cmd "~/.emacs.d/bin/racer/linux"))
 (add-to-list 'load-path "~/.emacs.d/packages/racer")
 (eval-after-load "rust-mode" '(require 'racer))
 
