@@ -1,0 +1,301 @@
+// Copyright 2012 The Rust Project Developers. See the COPYRIGHT
+// file at the top-level directory of this distribution and at
+// http://rust-lang.org/COPYRIGHT.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+
+use middle::ty;
+use middle::ty_fold;
+
+use std::cell::Cell;
+use std::iter::repeat;
+use syntax::codemap::Span;
+
+/// Defines strategies for handling regions that are omitted.  For
+/// example, if one writes the type `&Foo`, then the lifetime of
+/// this reference has been omitted. When converting this
+/// type, the generic functions in astconv will invoke `anon_regions`
+/// on the provided region-scope to decide how to translate this
+/// omitted region.
+///
+/// It is not always legal to omit regions, therefore `anon_regions`
+/// can return `Err(())` to indicate that this is not a scope in which
+/// regions can legally be omitted.
+pub trait RegionScope {
+    fn anon_regions(&self,
+                    span: Span,
+                    count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>>;
+
+    /// If an object omits any explicit lifetime bound, and none can
+    /// be derived from the object traits, what should we use? If
+    /// `None` is returned, an explicit annotation is required.
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region>;
+
+    /// The "base" default is the initial default for a scope. This is
+    /// 'static except for in fn bodies, where it is a fresh inference
+    /// variable. You shouldn't call this except for as part of
+    /// computing `object_lifetime_default` (in particular, in legacy
+    /// modes, it may not be relevant).
+    fn base_object_lifetime_default(&self, span: Span) -> ty::Region;
+
+    /// Used to issue warnings in Rust 1.2, not needed after that.
+    /// True if the result of `object_lifetime_default` will change in 1.3.
+    fn object_lifetime_default_will_change_in_1_3(&self) -> bool {
+        false
+    }
+
+    /// Used to issue warnings in Rust 1.2, not needed after that.
+    /// True if the result of `base_object_lifetime_default` differs
+    /// from the result of `object_lifetime_default`.
+    fn base_object_lifetime_default_differs(&self) -> bool {
+        false
+    }
+}
+
+// A scope in which all regions must be explicitly named. This is used
+// for types that appear in structs and so on.
+#[derive(Copy, Clone)]
+pub struct ExplicitRscope;
+
+impl RegionScope for ExplicitRscope {
+    fn anon_regions(&self,
+                    _span: Span,
+                    _count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>> {
+        Err(None)
+    }
+
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        Some(self.base_object_lifetime_default(span))
+    }
+
+    fn base_object_lifetime_default(&self, _span: Span) -> ty::Region {
+        ty::ReStatic
+    }
+}
+
+// Same as `ExplicitRscope`, but provides some extra information for diagnostics
+pub struct UnelidableRscope(Vec<(String, usize)>);
+
+impl UnelidableRscope {
+    pub fn new(v: Vec<(String, usize)>) -> UnelidableRscope {
+        UnelidableRscope(v)
+    }
+}
+
+impl RegionScope for UnelidableRscope {
+    fn anon_regions(&self,
+                    _span: Span,
+                    _count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>> {
+        let UnelidableRscope(ref v) = *self;
+        Err(Some(v.clone()))
+    }
+
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        Some(self.base_object_lifetime_default(span))
+    }
+
+    fn base_object_lifetime_default(&self, _span: Span) -> ty::Region {
+        ty::ReStatic
+    }
+}
+
+// A scope in which omitted anonymous region defaults to
+// `default`. This is used after the `->` in function signatures. The
+// latter use may go away. Note that object-lifetime defaults work a
+// bit differently, as specified in RFC #599.
+pub struct ElidableRscope {
+    default: ty::Region,
+}
+
+impl ElidableRscope {
+    pub fn new(r: ty::Region) -> ElidableRscope {
+        ElidableRscope { default: r }
+    }
+}
+
+impl RegionScope for ElidableRscope {
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        // Per RFC #599, object-lifetimes default to 'static unless
+        // overridden by context, and this takes precedence over
+        // lifetime elision.
+        Some(self.base_object_lifetime_default(span))
+    }
+
+    fn base_object_lifetime_default(&self, _span: Span) -> ty::Region {
+        ty::ReStatic
+    }
+
+    fn anon_regions(&self,
+                    _span: Span,
+                    count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>>
+    {
+        Ok(repeat(self.default).take(count).collect())
+    }
+}
+
+/// A scope in which we generate anonymous, late-bound regions for
+/// omitted regions. This occurs in function signatures.
+pub struct BindingRscope {
+    anon_bindings: Cell<u32>,
+}
+
+impl BindingRscope {
+    pub fn new() -> BindingRscope {
+        BindingRscope {
+            anon_bindings: Cell::new(0),
+        }
+    }
+
+    fn next_region(&self) -> ty::Region {
+        let idx = self.anon_bindings.get();
+        self.anon_bindings.set(idx + 1);
+        ty::ReLateBound(ty::DebruijnIndex::new(1), ty::BrAnon(idx))
+    }
+}
+
+impl RegionScope for BindingRscope {
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        // Per RFC #599, object-lifetimes default to 'static unless
+        // overridden by context, and this takes precedence over the
+        // binding defaults in a fn signature.
+        Some(self.base_object_lifetime_default(span))
+    }
+
+    fn base_object_lifetime_default(&self, _span: Span) -> ty::Region {
+        ty::ReStatic
+    }
+
+    fn anon_regions(&self,
+                    _: Span,
+                    count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>>
+    {
+        Ok((0..count).map(|_| self.next_region()).collect())
+    }
+}
+
+/// A scope which overrides the default object lifetime but has no other effect.
+pub struct ObjectLifetimeDefaultRscope<'r> {
+    base_scope: &'r (RegionScope+'r),
+    default: ty::ObjectLifetimeDefault,
+}
+
+impl<'r> ObjectLifetimeDefaultRscope<'r> {
+    pub fn new(base_scope: &'r (RegionScope+'r),
+               default: ty::ObjectLifetimeDefault)
+               -> ObjectLifetimeDefaultRscope<'r>
+    {
+        ObjectLifetimeDefaultRscope {
+            base_scope: base_scope,
+            default: default,
+        }
+    }
+}
+
+impl<'r> RegionScope for ObjectLifetimeDefaultRscope<'r> {
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        match self.default {
+            ty::ObjectLifetimeDefault::Ambiguous =>
+                None,
+
+            ty::ObjectLifetimeDefault::BaseDefault =>
+                if false { // this will become the behavior in Rust 1.3
+                    Some(self.base_object_lifetime_default(span))
+                } else {
+                    self.base_scope.object_lifetime_default(span)
+                },
+
+            ty::ObjectLifetimeDefault::Specific(r) =>
+                Some(r),
+        }
+    }
+
+    fn base_object_lifetime_default(&self, span: Span) -> ty::Region {
+        assert!(false, "this code should not execute until Rust 1.3");
+        self.base_scope.base_object_lifetime_default(span)
+    }
+
+    fn object_lifetime_default_will_change_in_1_3(&self) -> bool {
+        debug!("object_lifetime_default_will_change_in_1_3: {:?}", self.default);
+
+        match self.default {
+            ty::ObjectLifetimeDefault::Ambiguous |
+            ty::ObjectLifetimeDefault::Specific(_) =>
+                false,
+
+            ty::ObjectLifetimeDefault::BaseDefault =>
+                self.base_scope.base_object_lifetime_default_differs()
+        }
+    }
+
+    fn base_object_lifetime_default_differs(&self) -> bool {
+        debug!("base_object_lifetime_default_differs: {:?}", self.default);
+
+        match self.default {
+            ty::ObjectLifetimeDefault::Ambiguous |
+            ty::ObjectLifetimeDefault::Specific(_) =>
+                true,
+
+            ty::ObjectLifetimeDefault::BaseDefault =>
+                self.base_scope.base_object_lifetime_default_differs(),
+        }
+    }
+
+    fn anon_regions(&self,
+                    span: Span,
+                    count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>>
+    {
+        self.base_scope.anon_regions(span, count)
+    }
+}
+
+/// A scope which simply shifts the Debruijn index of other scopes
+/// to account for binding levels.
+pub struct ShiftedRscope<'r> {
+    base_scope: &'r (RegionScope+'r)
+}
+
+impl<'r> ShiftedRscope<'r> {
+    pub fn new(base_scope: &'r (RegionScope+'r)) -> ShiftedRscope<'r> {
+        ShiftedRscope { base_scope: base_scope }
+    }
+}
+
+impl<'r> RegionScope for ShiftedRscope<'r> {
+    fn object_lifetime_default(&self, span: Span) -> Option<ty::Region> {
+        self.base_scope.object_lifetime_default(span)
+            .map(|r| ty_fold::shift_region(r, 1))
+    }
+
+    fn base_object_lifetime_default(&self, span: Span) -> ty::Region {
+        ty_fold::shift_region(self.base_scope.base_object_lifetime_default(span), 1)
+    }
+
+    fn anon_regions(&self,
+                    span: Span,
+                    count: usize)
+                    -> Result<Vec<ty::Region>, Option<Vec<(String, usize)>>>
+    {
+        match self.base_scope.anon_regions(span, count) {
+            Ok(mut v) => {
+                for r in &mut v {
+                    *r = ty_fold::shift_region(*r, 1);
+                }
+                Ok(v)
+            }
+            Err(errs) => {
+                Err(errs)
+            }
+        }
+    }
+}

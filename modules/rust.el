@@ -4,7 +4,7 @@
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 
 ;; racer
-(setq racer-rust-src-path "~/.emacs.d/src/rustc-1.1.0/src")
+(setq racer-rust-src-path "~/.emacs.d/src/rustc-1.2.0/src")
 (if (eq system-type 'darwin)
     (setq racer-cmd "~/.emacs.d/bin/racer/darwin"))
 (if (eq system-type 'gnu/linux)
