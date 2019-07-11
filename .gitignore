@@ -1,0 +1,10 @@
+.DS_Store
+.cask
+*.elc
+auto-save-list/
+eshell/
+url/
+*.eld
+.cache
+recentf
+places
