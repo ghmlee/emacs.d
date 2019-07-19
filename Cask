@@ -14,6 +14,8 @@
 (depends-on "markdown-mode")
 (depends-on "yaml-mode")
 (depends-on "rjsx-mode")
+(depends-on "dockerfile-mode")
+(depends-on "groovy-mode")
 
 ;; minor mode
 (depends-on "prettier-js")

@@ -252,7 +252,14 @@
 ;; ruby
 (add-hook 'ruby-mode-hook (lambda ()
 			    (setq ruby-indent-level 2)))
-(add-to-list 'auto-mode-alist '("Fastfile'" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\Fastfile\\'" . ruby-mode))
+
+;; dockerfile
+(require 'dockerfile-mode)
+
+;; groovy
+(require 'groovy-mode)
+(add-to-list 'auto-mode-alist '("\\Jenkinsfile\\'" . groovy-mode))
 
 ;; nvm
 ;(require 'nvm)
