@@ -260,6 +260,8 @@
 ;; groovy
 (require 'groovy-mode)
 (add-to-list 'auto-mode-alist '("\\Jenkinsfile\\'" . groovy-mode))
+(add-hook 'groovy-mode-hook (lambda ()
+			      (setq groovy-indent-offset 2)))
 
 ;; nvm
 ;(require 'nvm)
