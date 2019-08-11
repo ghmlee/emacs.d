@@ -225,6 +225,7 @@
 (require 'swift-mode)
 
 ;; go
+(setenv "GOPATH" (concat (getenv "HOME") "/.go"))
 (require 'go-mode)
 (add-hook 'go-mode-hook
 	  (lambda ()
