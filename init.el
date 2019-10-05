@@ -233,10 +233,8 @@
 (require 'go-mode)
 (add-hook 'go-mode-hook
 	  (lambda ()
-	    (setq-default)
-	    (setq tab-width 2)
-	    (setq standard-indent 2)
-	    (setq indent-tabs-mode nil)))
+	    (setq indent-tabs-mode 1)
+	    (setq tab-width 2)))
 
 ;; java
 (add-hook 'java-mode-hook
