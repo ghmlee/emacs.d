@@ -220,9 +220,13 @@
 (autoload 'rust-mode "rust-mode" nil t)
 (require 'rust-mode)
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+(add-hook 'rust-mode-hook (lambda ()
+			    (setq rust-indent-offset 2)))
 
 ;; swift
 (require 'swift-mode)
+(add-hook 'swift-mode-hook (lambda ()
+			     (setq swift-mode:basic-offset 2)))
 
 ;; go
 (setenv "GOPATH" (concat (getenv "HOME") "/.go"))
