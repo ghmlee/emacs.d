@@ -466,7 +466,7 @@ project."
 
 ;; multi-term
 (require 'multi-term)
-(setq multi-term-program "/bin/bash")
+(setq multi-term-program "/bin/zsh")
 (setq term-bind-key-alist
       '(("C-c C-c" . term-interrupt-subjob)            ; default
         ("C-c C-e" . term-send-esc)                    ; default
