@@ -3,21 +3,13 @@
 ;;; Emacs
 ;;; Code:
 
-;; cask
-(require 'cask "/usr/local/share/emacs/site-lisp/cask/cask.el")
-(cask-initialize)
-
-;; package
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-(when (< emacs-major-version 24) (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-(package-initialize)
-
-;(add-to-list 'load-path "~/.emacs.d/packages/")
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
 
 ;; color theme
 (custom-set-faces (if (not window-system) '(default ((t (:background "nil"))))))
+(add-to-list 'custom-theme-load-path "~/.emacs.d/packages/atom-one-dark-theme/")
 (load-theme 'atom-one-dark t)
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
@@ -43,8 +35,10 @@
 (setq locale-coding-system 'utf-8-hfs)
 
 ;; misc
+(add-to-list 'load-path "~/.emacs.d/packages/exec-path-from-shell/")
+(require 'exec-path-from-shell)
 (when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize))
+ (exec-path-from-shell-initialize))
 ;(setq path "/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/go/bin")
 
 (require 'ls-lisp)
@@ -103,7 +97,7 @@
 (setq interprogram-paste-function 'copy-from-osx)
 
 ;; font
-(set-default-font "menlo 11")
+(set-frame-font "menlo 11" nil t)
 
 (setq mac-allow-anti-aliasing t)
 (setq font-lock-maximum-decoration t
@@ -217,6 +211,7 @@
 				  indent-tabs-mode t)))
 
 ;; rust
+(add-to-list 'load-path "~/.emacs.d/packages/rust-mode/")
 (autoload 'rust-mode "rust-mode" nil t)
 (require 'rust-mode)
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
@@ -224,11 +219,13 @@
 			    (setq rust-indent-offset 2)))
 
 ;; swift
+(add-to-list 'load-path "~/.emacs.d/packages/swift-mode/")
 (require 'swift-mode)
 (add-hook 'swift-mode-hook (lambda ()
 			     (setq swift-mode:basic-offset 2)))
 
 ;; go
+(add-to-list 'load-path "~/.emacs.d/packages/go-mode/")
 (setenv "GOPATH" (concat (getenv "HOME") "/.go"))
 (require 'go-mode)
 (add-hook 'go-mode-hook
@@ -258,9 +255,14 @@
 (add-to-list 'auto-mode-alist '("\\Fastfile\\'" . ruby-mode))
 
 ;; dockerfile
+(add-to-list 'load-path "~/.emacs.d/packages/s/")
+(add-to-list 'load-path "~/.emacs.d/packages/dockerfile-mode/")
 (require 'dockerfile-mode)
+(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
 
 ;; groovy
+(add-to-list 'load-path "~/.emacs.d/packages/dash/")
+(add-to-list 'load-path "~/.emacs.d/packages/groovy-mode/")
 (require 'groovy-mode)
 (add-to-list 'auto-mode-alist '("\\Jenkinsfile\\'" . groovy-mode))
 (add-hook 'groovy-mode-hook (lambda ()
@@ -277,14 +279,19 @@
 ;  (exec-path-from-shell-copy-env "PATH"))
 
 ;; javascript
+(add-to-list 'load-path "~/.emacs.d/packages/js3-mode/")
+(require 'js3-mode)
 (setq js-indent-level 2)
 
 ;; react
+(add-to-list 'load-path "~/.emacs.d/packages/js2-mode/")
+(add-to-list 'load-path "~/.emacs.d/packages/rjsx-mode/")
 (require 'rjsx-mode)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.jsx\\'" . rjsx-mode))
 
 ;; prettier-js
+(add-to-list 'load-path "~/.emacs.d/packages/prettier-js/")
 (defun use-prettier-if-in-node-modules ()
   "Use prettier-js-mode if prettier is found in this file's
 project's node_modules. Use the prettier binary from this
@@ -307,6 +314,7 @@ project."
 (setq css-indent-offset 2)
 
 ;; html
+(add-to-list 'load-path "~/.emacs.d/packages/multi-web-mode/")
 (require 'multi-web-mode)
 (setq mweb-default-major-mode 'html-mode)
 (setq mweb-tags '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
@@ -316,11 +324,13 @@ project."
 (multi-web-global-mode 1)
 
 ;; markdown
+(add-to-list 'load-path "~/.emacs.d/packages/markdown-mode/")
 (require 'markdown-mode)
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
 ;; yaml
+(add-to-list 'load-path "~/.emacs.d/packages/yaml-mode/")
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
 
@@ -383,28 +393,38 @@ project."
 	("DONE" . (:foreground "#98C379" :weight bold))))
 
 ;; org-bullets
+(add-to-list 'load-path "~/.emacs.d/packages/org-bullets/")
 (require 'org-bullets)
 (add-hook 'org-mode-hook 'org-bullets-mode)
 
 ;; magit
+(add-to-list 'load-path "~/.emacs.d/packages/async/")
+(add-to-list 'load-path "~/.emacs.d/packages/transient/lisp/")
+(add-to-list 'load-path "~/.emacs.d/packages/with-editor/")
+(add-to-list 'load-path "~/.emacs.d/packages/magit/lisp/")
+(require 'magit)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
 ;; projectile
+(add-to-list 'load-path "~/.emacs.d/packages/projectile/")
+(require 'projectile)
 (projectile-mode +1)
 (define-key projectile-mode-map (kbd "C-c C-g") 'projectile-grep)
 ;(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 ;(global-set-key (kbd "C-c p K") 'projectile-remove-known-project)
 (setq projectile-globally-ignored-directories
-      (append '(".DS_Store" ".git" ".svn" "out" "repl" "target" "dist" "lib" "node_modules" "libs" "deploy" ".emacs.d" ".cask")
+      (append '(".DS_Store" ".git" ".svn" "out" "repl" "target" "dist" "lib" "node_modules" "libs" "deploy" ".emacs.d" ".cask" "vendor")
               projectile-globally-ignored-directories))
 (setq projectile-globally-ignored-files
       (append '(".#*" ".DS_Store" "*.tar.gz" "*.tgz" "*.zip" "*.png" "*.jpg" "*.gif")
               projectile-globally-ignored-files))
- (setq grep-find-ignored-directories (append '("dist" "deploy" "node_modules") grep-find-ignored-directories))
+ (setq grep-find-ignored-directories (append '("dist" "deploy" "node_modules" "vendor") grep-find-ignored-directories))
 
 ;; eyebrowse
+(add-to-list 'load-path "~/.emacs.d/packages/eyebrowse/")
+(require 'eyebrowse)
 (eyebrowse-mode t)
 (global-set-key (kbd "M-1") 'eyebrowse-switch-to-window-config-1)
 (global-set-key (kbd "M-2") 'eyebrowse-switch-to-window-config-2)
@@ -426,6 +446,11 @@ project."
 (setq recentf-max-menu-items 10)
 
 ;; ivy, swiper, counsel
+(add-to-list 'load-path "~/.emacs.d/packages/swiper/")
+(add-to-list 'load-path "~/.emacs.d/packages/counsel-projectile/")
+(require 'ivy)
+(require 'swiper)
+(require 'counsel-projectile)
 (ivy-mode 1)
 (setq ivy-use-virtual-buffers t)
 (setq enable-recursive-minibuffers t)
@@ -450,21 +475,25 @@ project."
 (counsel-projectile-mode 1)
 
 ;; iedit
+(add-to-list 'load-path "~/.emacs.d/packages/iedit/")
 (require 'iedit)
 ;(global-set-key (kbd "C-;") 'iedit-mode) ; default key binding
 (global-set-key (kbd "C-c r") 'iedit-mode)
 
 ;; wgrep
+(add-to-list 'load-path "~/.emacs.d/packages/wgrep/")
 (require 'wgrep)
 ;(global-set-key (kbd "C-c C-p") 'wgrep-change-to-wgrep-mode) ; default key binding
 
 ;; ibuffer-vc
+(add-to-list 'load-path "~/.emacs.d/packages/ibuffer-vc/")
 (require 'ibuffer-vc)
 (add-hook 'ibuffer-hook (lambda ()
 			  (ibuffer-vc-set-filter-groups-by-vc-root)
 			  (ibuffer-do-sort-by-recency)))
 
 ;; multi-term
+(add-to-list 'load-path "~/.emacs.d/packages/multi-term/")
 (require 'multi-term)
 (setq multi-term-program "/bin/zsh")
 (setq term-bind-key-alist
@@ -501,16 +530,24 @@ project."
   (command-execute 'multi-term))
 
 ;; company
+(add-to-list 'load-path "~/.emacs.d/packages/company/")
+(require 'company)
 (add-hook 'after-init-hook 'global-company-mode)
 
 ;; flycheck
+(add-to-list 'load-path "~/.emacs.d/packages/flycheck/")
+(require 'flycheck)
 (global-flycheck-mode)
 
 ;; which-key
+(add-to-list 'load-path "~/.emacs.d/packages/which-key/")
+(require 'which-key)
 (which-key-mode)
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
 ;; minions
+(add-to-list 'load-path "~/.emacs.d/packages/minions/")
+(require 'minions)
 (minions-mode)

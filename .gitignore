@@ -9,3 +9,6 @@ url/
 recentf
 places
 transient/
+*.log
+elpa/
+packages/
